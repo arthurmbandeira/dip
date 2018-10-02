@@ -1,34 +1,48 @@
 #!/usr/bin/python3
 
 import numpy as np
+from skimage import measure
 from PIL import Image as im
 
-pil_img = im.open('../test_images/mandril_color.tif')
-# pil_img = im.open('../test_images/lena_color_512.tif')
+def chroma_subsampling(img, J, a, b):
+    ycbcr = pil_img.convert('YCbCr')
+    np_img = np.array(ycbcr)
 
-ycbcr = pil_img.convert('YCbCr')
-np_img = np.array(ycbcr)
+    band_y = np_img[:,:,0]
 
-band_y = np_img[:,:,0]
-# band_cb = np_img[:,:,1]
-# band_cr = np_img[:,:,2]
-band_cb_down_2 = np_img[::2,::2,1]
-band_cr_down_2 = np_img[::2,::2,2]
+    if (a == 4 and b == 4):
+        band_cb = np_img[:,:,1]
+        band_cr = np_img[:,:,2]
+    else:
+        a_value = int(J/a)
+        b_value = 2 if (b == 0) else 1
 
-# band_cb_down_4 = np_img[::4,::4,1]
-# band_cr_down_4 = np_img[::4,::4,2]
+        band_cb = np_img[::b_value,::a_value,1]
+        band_cr = np_img[::b_value,::a_value,2]
 
-new_band_cb_2 = np.repeat((np.repeat(band_cb_down_2,2,axis=1)),2,axis=0)
-new_band_cr_2 = np.repeat((np.repeat(band_cr_down_2,2,axis=1)),2,axis=0)
+    new_band_cb = np.repeat((np.repeat(band_cb, a_value, axis=1)), b_value, axis=0)
+    new_band_cr = np.repeat((np.repeat(band_cr, a_value, axis=1)), b_value, axis=0)
 
-# new_band_cb_4 = np.repeat((np.repeat(band_cb_down_4,4,axis=1)),4,axis=0)
-# new_band_cr_4 = np.repeat((np.repeat(band_cr_down_4,4,axis=1)),4,axis=0)
+    joined_img = np.dstack((band_y, new_band_cb, new_band_cr))
+    out_img = im.fromarray(joined_img, 'YCbCr').convert('RGB')
 
-# joined_img = np.dstack((band_y, new_band_cb, new_band_cr))
-joined_img = np.dstack((band_y, new_band_cb_2, new_band_cr_2))
-# joined_img = np.dstack((band_y, new_band_cb_4, new_band_cr_4))
-out_img = im.fromarray(joined_img, 'YCbCr').convert('RGB')
+    return out_img
 
-pil_img.show()
-out_img.show()
-# out_img.save('../out_images/mandril_cs_2.tif')
+def calc_error(orig_img, proc_img, err='PSNR'):
+    if (err == 'PSNR'):
+        return measure.compare_psnr(np.array(orig_img), np.array(proc_img))
+    elif (err == 'MSE'):
+        return measure.compare_mse(np.array(orig_img), np.array(proc_img))
+    elif (err == 'NRMSE'):
+        return measure.compare_nrmse(np.array(orig_img), np.array(proc_img))
+    else:
+        pass
+
+# pil_img = im.open('../test_images/mandril_color.tif')
+pil_img = im.open('../test_images/lena_color_512.tif')
+out_img = chroma_subsampling(pil_img, 4, 1, 1)
+
+print(calc_error(pil_img, out_img, 'PSNR'))
+
+# pil_img.show()
+# out_img.show()
