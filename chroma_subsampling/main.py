@@ -33,8 +33,6 @@ def calc_error(orig_img, proc_img, err='PSNR'):
         return measure.compare_psnr(np.array(orig_img), np.array(proc_img))
     elif (err == 'MSE'):
         return measure.compare_mse(np.array(orig_img), np.array(proc_img))
-    elif (err == 'NRMSE'):
-        return measure.compare_nrmse(np.array(orig_img), np.array(proc_img))
     else:
         pass
 
