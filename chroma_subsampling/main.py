@@ -5,7 +5,7 @@ from skimage import measure
 from PIL import Image as im
 
 def chroma_subsampling(img, J, a, b):
-    ycbcr = pil_img.convert('YCbCr')
+    ycbcr = img.convert('YCbCr')
     np_img = np.array(ycbcr)
 
     band_y = np_img[:,:,0]
