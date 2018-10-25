@@ -6,6 +6,6 @@
 
 ## 3. Generated Color Palette Applied to a Sequence of Images
 
-<!-- ## Members
+## Members
  - Arthur Manuel Bandeira
- - Fábio Pinheli -->
+ - Fábio Pinheli
