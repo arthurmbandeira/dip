@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 
 numpy_intro.py
+contrast_by_region/
