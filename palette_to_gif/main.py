@@ -4,7 +4,18 @@ import numpy as np
 from PIL import Image as im
 
 def read_gif(gif):
-    pass
+    frames = im.open(gif)
+    out = []
+    curr_frame = 0
+    while frames:
+        out.append(np.array(frames.convert('HSV'))[:,:,2])
+        curr_frame += 1
+        try:
+            frames.seek(curr_frame)
+        except EOFError:
+            break
+    out = np.array(out)
+    return out
 
 def generate_palette(h1, h2, num_frames):
 
@@ -28,11 +39,21 @@ def generate_palette(h1, h2, num_frames):
 
     list_hsv = map(lambda x : np.dstack((np.dstack((x, ls)), lv)), lh)
 
-    return list(list_hsv)
+    return np.array(list(list_hsv))
 
 def show_palette(palette):
     list(map(lambda x : im.fromarray(x, 'HSV').convert('RGB').show(), palette))
 
 if __name__ == "__main__":
-    palette = generate_palette(0, 240, 3)
-    show_palette(palette)
+    gif_arr = read_gif('../test_images/magic.gif')
+    # gif_arr = read_gif('../test_images/mind_blowing.gif')
+    palette = generate_palette(0, 340, len(gif_arr))
+
+    run_arr = list(map(lambda x : np.array(im.fromarray(x).convert('RGB')), gif_arr))
+    out_arr = []
+
+    for x in range(len(gif_arr)):
+        run_arr[x] = palette[x][:, 1, :][gif_arr[x]]
+        out_arr.append(im.fromarray(run_arr[x], 'HSV').convert('RGB'))
+
+    out_arr[0].save('out1.gif', format='GIF', save_all=True, append_images=out_arr[1:], duration=100, loop=0)
