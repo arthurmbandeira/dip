@@ -1,8 +1,11 @@
 #!/usr/bin/python3
 
+import sys
+import getopt
+
 import numpy as np
-from skimage import measure
 from PIL import Image as im
+from skimage import measure
 
 def chroma_subsampling(img, J, a, b):
     ycbcr = img.convert('YCbCr')
@@ -13,6 +16,8 @@ def chroma_subsampling(img, J, a, b):
     if (a == 4 and b == 4):
         band_cb = np_img[:,:,1]
         band_cr = np_img[:,:,2]
+        a_value = int(J/a)
+        b_value = 2 if (b == 0) else 1
     else:
         a_value = int(J/a)
         b_value = 2 if (b == 0) else 1
@@ -34,13 +39,44 @@ def calc_error(orig_img, proc_img, err='PSNR'):
     elif (err == 'MSE'):
         return measure.compare_mse(np.array(orig_img), np.array(proc_img))
     else:
-        pass
+        raise ValueError('Error type accepted are: MSE or PSNR')
 
-# pil_img = im.open('../test_images/mandril_color.tif')
-pil_img = im.open('../test_images/lena_color_512.tif')
-out_img = chroma_subsampling(pil_img, 4, 1, 1)
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv, "hi:j:a:b:o:e:", ["image", "j", "a", "b", "out_image", "error"])
+    except getopt.GetoptError:
+        print('main.py -i <image> -j <j_value> -a <a_value> -b <b_value> -o <out_image> -e <error_measure>')
+        sys.exit(2)
+    error = ''
+    for opt, arg in opts:
+        if opt == '-h':
+            print('main.py -i <image> -j <j_value> -a <a_value> -b <b_value> -o <out_image> -e <error_measure>')
+            sys.exit()
+        elif opt in ("-i", "--image"):
+            image = arg
+        elif opt == '-j':
+            j = int(arg)
+        elif opt == '-a':
+            a = int(arg)
+        elif opt == '-b':
+            b = int(arg)
+        elif opt in ("-o", "--out_image"):
+            out_image = arg
+        elif opt in ("-e", "--error"):
+            error = arg
 
-print(calc_error(pil_img, out_img, 'PSNR'))
+    ext = image.split(".")[-1]
+    ext = 'tiff' if ext == 'tif' else ext
 
-# pil_img.show()
-# out_img.show()
+    pil_img = im.open(image)
+    out_img = chroma_subsampling(pil_img, j, a, b)
+    # out_img.save(out_image + j + a + b '.' + ext, format=ext)
+    out_img.save('{}_{}{}{}.{}'.format(out_image, j, a, b, ext), format=ext)
+
+    if error != '':
+        print(error + ': ' + str(calc_error(pil_img, out_img, error)))
+    else:
+        sys.exit(2)
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
