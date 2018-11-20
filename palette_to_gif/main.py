@@ -44,16 +44,16 @@ def generate_palette(h1, h2, num_frames):
 
     return np.array(list(map_hsv))
 
-def show_palette(palette):
-    list(map(lambda x : im.fromarray(x, 'HSV').convert('RGB').show(), palette))
+def save_pallete(palette):
+    list(map(lambda x, i : im.fromarray(x, 'HSV').convert('RGB').save('palette/palette{}.png'.format(i), format='PNG'), palette, range(len(palette))))
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "hi:a:b:o:p:", ["image", "color_a", "color_b", "out_image", "show_palette"])
+        opts, args = getopt.getopt(argv, "hi:a:b:o:p:", ["image", "color_a", "color_b", "out_image", "save_pallete"])
     except getopt.GetoptError:
         print('main.py -i <image> -a <color_a> -b <color_b> -o <out_image> -p <show_pallete>')
         sys.exit(2)
-    sp = False
+    save = False
     for opt, arg in opts:
         if opt == '-h':
             print('main.py -i <image> -a <color_a> -b <color_b> -o <out_image> -p <show_pallete>')
@@ -66,13 +66,14 @@ def main(argv):
             color_b = int(arg)
         elif opt in ("-o", "--out_image"):
             out_image = arg
-        elif opt in ("-p", "--show_palette"):
-            sp = bool(arg)
+        elif opt in ("-p", "--save_pallete"):
+            save = bool(arg)
 
     gif_arr = read_gif(image)
     palette = generate_palette(color_a, color_b, len(gif_arr))
 
-    if sp: show_palette(palette)
+    if save:
+        save_pallete(palette)
 
     out_arr = [im.fromarray(palette[x][:, 1, :][gif_arr[x]], 'HSV').convert('RGB') for x in range(len(gif_arr))]
     out_arr[0].save(out_image + '.gif', format='GIF', save_all=True, append_images=out_arr[1:], duration=100, loop=0)

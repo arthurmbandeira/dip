@@ -11,6 +11,7 @@ def translate_coords(v, w, tx, ty):
     return v + tx, w + ty
 
 def translate_image(img, tx, ty):
+    tx, ty = int(tx), int(ty)
 
     img_grey = len(img.shape) == 2
     if img_grey:
@@ -164,7 +165,6 @@ def main(argv):
         elif opt == '-a':
             theta = float(arg)
         elif opt in ("-o", "--out_image"):
-            print(arg)
             out_image = arg
 
     ext = image.split(".")[-1]
@@ -174,13 +174,13 @@ def main(argv):
 
     if transformation in ('r', 'rotate'):
         rot_im = rotate_image(np_img, theta)
-        rot_im.save(out_image + '_rotate.' + ext, format=ext)
+        rot_im.save('{}_rotated_{}.{}'.format(out_image, theta, ext), format=ext)
     elif transformation in ('s', 'scale'):
         sc_im = scale_image(np_img, x, y)
-        sc_im.save(out_image + '_scaled.' + ext, format=ext)
+        sc_im.save('{}_scaled_{}_{}.{}'.format(out_image, x, y, ext), format=ext)
     elif transformation in ('t', 'translate'):
         tr_im = translate_image(np_img, x, y)
-        tr_im.save(out_image + '_translated.' + ext, format=ext)
+        tr_im.save('{}_translated_{}_{}.{}'.format(out_image, x, y, ext), format=ext)
     else:
         raise ValueError('Transformation must be r: rotate, s: scale or t: translate.')
 
